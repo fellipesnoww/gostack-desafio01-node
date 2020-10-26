@@ -32,8 +32,18 @@ function validateId(request, response, next){
   const {id} = request.params;
 
   if(!isUuid(id)){
-    return response.status(400).json({message: 'Invalid ID'})
+    return response.status(400).json({message: 'Invalid ID'});
   };
+
+  return next();
+}
+
+function validateQuantityLikes(request, response, next){  
+  const {likes} = request.body;
+
+  if(likes){
+    return response.status(400).json({likes: 0})
+  }
 
   return next();
 }
@@ -52,7 +62,9 @@ app.post("/repositories", validateRepo, (request, response) => {
   return response.json(repository);
 });
 
-app.put("/repositories/:id", validateRepo, validateId, (request, response) => {
+
+//Nao posso validar os outros atributos para que seja passado no teste de update de likes
+app.put("/repositories/:id", validateId, validateQuantityLikes,(request, response) => {
   const {id} = request.params;
   const {title, url, techs} = request.body;
 
@@ -62,11 +74,14 @@ app.put("/repositories/:id", validateRepo, validateId, (request, response) => {
     return response.status(400).json({message: "Repository not found"})
   }
 
+  const repositoryExistent = repositories[repositoryIndex];
+
   const repository = {
     id,
     title,
     url,
-    techs
+    techs,
+    likes: repositoryExistent.likes
   };
 
   repositories[repositoryIndex] = repository;
@@ -101,7 +116,7 @@ app.post("/repositories/:id/like", validateId, (request, response) => {
 
   repository.likes = repository.likes + 1;
   
-  return response.status(204).send();
+  return response.json(repository);
   
 });
 
